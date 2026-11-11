@@ -43,7 +43,6 @@ async function waitForFonts(): Promise<void> {
 		await Promise.all([
 			document.fonts.load('16px "EB Garamond"'),
 			document.fonts.load('italic 16px "EB Garamond"'),
-			document.fonts.load('600 16px "EB Garamond"'),
 			document.fonts.load('700 16px "EB Garamond"'),
 		]);
 		await document.fonts.ready;

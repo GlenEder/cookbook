@@ -11,7 +11,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "validate": "node scripts/validate-recipes.mjs",
-    "test:book": "node --experimental-strip-types scripts/test-book-model.mjs"
+    "test:book": "node --experimental-strip-types scripts/test-book-model.mjs",
+    "deploy": "astro build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.8",
@@ -19,5 +20,8 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-pageflip": "^2.0.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.160.1"
   }
 }

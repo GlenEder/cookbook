@@ -29,13 +29,6 @@
 }
 @font-face {
 	font-family: "EB Garamond";
-	src: url("/fonts/eb-garamond-v33-latin-600.woff2") format("woff2");
-	font-weight: 600;
-	font-style: normal;
-	font-display: swap;
-}
-@font-face {
-	font-family: "EB Garamond";
 	src: url("/fonts/eb-garamond-v33-latin-700.woff2") format("woff2");
 	font-weight: 700;
 	font-style: normal;
@@ -75,7 +68,7 @@ body {
 /* ---------------------------------------------------------------- pages */
 .page {
 	background:
-		linear-gradient(90deg, rgba(105, 78, 49, 0.16), transparent 7%, transparent 93%, rgba(105, 78, 49, 0.16)),
+		linear-gradient(90deg, rgba(105, 78, 49, 0.22), transparent 6%, transparent 94%, rgba(105, 78, 49, 0.22)),
 		linear-gradient(180deg, rgba(255, 252, 242, 0.6), transparent 12%, transparent 88%, rgba(133, 100, 62, 0.14)),
 		linear-gradient(115deg, var(--paper) 0%, #fbf5e6 45%, var(--paper-deep) 100%);
 	box-shadow:

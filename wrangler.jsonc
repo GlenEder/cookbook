@@ -1,0 +1,10 @@
+// Cloudflare Workers static assets — fully static build, no Worker script.
+// Deploy with `npm run deploy` (requires `wrangler login` Cloudflare auth first).
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "glen-cookbook",
+	"compatibility_date": "2026-11-11",
+	"assets": {
+		"directory": "./dist"
+	}
+}

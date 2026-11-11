@@ -61,7 +61,9 @@ const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<meta name="preload" as="font" type="font/woff2" href="/fonts/eb-garamond-v33-latin-regular.woff2" crossorigin="anonymous" />
+			<link rel="preload" as="font" type="font/woff2" href="/fonts/eb-garamond-v33-latin-regular.woff2" crossorigin="anonymous" />
+			<link rel="preload" as="font" type="font/woff2" href="/fonts/eb-garamond-v33-latin-italic.woff2" crossorigin="anonymous" />
+		<link rel="preload" as="font" type="font/woff2" href="/fonts/eb-garamond-v33-latin-700.woff2" crossorigin="anonymous" />
 		<title>{siteTitle}</title>
 	</head>
 	<body>
