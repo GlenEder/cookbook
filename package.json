@@ -10,9 +10,14 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "validate": "node scripts/validate-recipes.mjs"
+    "validate": "node scripts/validate-recipes.mjs",
+    "test:book": "node --experimental-strip-types scripts/test-book-model.mjs"
   },
   "dependencies": {
-    "astro": "^7.4.11"
+    "@astrojs/react": "^7.1.8",
+    "astro": "^7.4.11",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-pageflip": "^2.0.3"
   }
 }

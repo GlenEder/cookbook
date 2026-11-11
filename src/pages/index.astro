@@ -1,6 +1,35 @@
 ---
+import { getCollection, render } from "astro:content";
+import { experimental_AstroContainer as AstroContainer } from "astro/container";
+import { buildBasePages, type RecipeInput } from "../lib/book-model.ts";
+import Book from "../components/Book/Book";
+import "../styles/book.css";
+
+// Recipes in stable doc order (alphabetical by slug within each section).
+const entries = (await getCollection("recipes")).sort((a, b) => a.id.localeCompare(b.id));
+const container = await AstroContainer.create();
+
+const recipes: RecipeInput[] = [];
+const recipeHtml: { slug: string; html: string }[] = [];
+for (const entry of entries) {
+	const { Content } = await render(entry);
+	const html = await container.renderToString(Content);
+	recipes.push({
+		slug: entry.id,
+		title: entry.data.title,
+		section: entry.data.section,
+		yield: entry.data.yield,
+		inTesting: entry.data.inTesting,
+		source: entry.data.source,
+	});
+	recipeHtml.push({ slug: entry.id, html });
+}
+
+// Single source of truth for the ordered page list (Stage 3 consumes it too).
+const pages = buildBasePages(recipes);
 ---
 
+<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
@@ -8,9 +37,13 @@
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<meta name="preload" as="font" type="font/woff2" href="/fonts/eb-garamond-v33-latin-regular.woff2" crossorigin="anonymous" />
+		<title>A Collection of Glen Approved Foods</title>
 	</head>
 	<body>
-		<h1>Astro</h1>
+		<div class="recipe-html-source" hidden>
+			{recipeHtml.map((r) => <template data-recipe-html={r.slug} set:html={r.html} />)}
+		</div>
+		<Book client:only="react" pages={pages} />
 	</body>
 </html>
