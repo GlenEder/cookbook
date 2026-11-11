@@ -1,8 +1,16 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { expandContinuations, type BookPage } from "../../lib/book-model.ts";
+import {
+	buildPageIndexMap,
+	expandContinuations,
+	goToPage,
+	insertTocPages,
+	type BookPage,
+} from "../../lib/book-model.ts";
 import { paginateHtml } from "./paginate";
+import { buildTocHtml, fillTocNumbers } from "./toc";
 import PageFrame from "./PageFrame";
+import Search from "./Search";
 
 const PAGE_RATIO = 1.45;
 /** Reserves matching the CSS box on every measured recipe page. */
@@ -61,8 +69,40 @@ export default function Book({ pages }: { pages: BookPage[] }) {
 	const [expanded, setExpanded] = useState<{
 		pages: BookPage[];
 		chunks: Record<string, string[]>;
-	}>({ pages, chunks: {} });
+		tocChunks: string[];
+		map: ReturnType<typeof buildPageIndexMap>;
+	}>({
+		pages,
+		chunks: {},
+		tocChunks: [],
+		map: { bySlug: {}, bySection: {} },
+	});
 	const flipRef = useRef<any>(null);
+	const stageRef = useRef<HTMLDivElement>(null);
+
+	// TOC rows live inside flipbook pages: without this, the flipbook's own
+	// mousedown/touchstart click-to-turn ALSO fires (the target is the row's
+	// span, not the button, so page-flip's checkTarget lets it through) and the
+	// jump over-flips by one page. Scope to the TOC controls only — recipe page
+	// roots also carry data-slug, which must NOT swallow flipping there.
+	// Intercept in capture; the row's click still bubbles to handleStageClick.
+	useEffect(() => {
+		const stage = stageRef.current;
+		if (!stage) return;
+		const stop = (e: Event) => {
+			if ((e.target as HTMLElement)?.closest?.(".toc-entry,.toc-section")) {
+				e.stopPropagation();
+			}
+		};
+		for (const type of ["mousedown", "touchstart"]) {
+			stage.addEventListener(type, stop, true);
+		}
+		return () => {
+			for (const type of ["mousedown", "touchstart"]) {
+				stage.removeEventListener(type, stop, true);
+			}
+		};
+	}, [ready]);
 
 	// Paginate only after fonts are ready; rerun whenever the page size changes.
 	useEffect(() => {
@@ -73,14 +113,31 @@ export default function Book({ pages }: { pages: BookPage[] }) {
 			const htmlBySlug = readRecipeHtml();
 			const box = {
 				width: size.w - PAGE_PAD_X,
+				// TOC pages have no .page-head, so their content box is taller.
+				tocHeight: size.h - PAGE_PAD_Y - 8,
 				height: size.h - PAGE_PAD_Y - PAGE_HEAD,
 			};
+			// 1. Paginate the TOC first — its page count shifts every later index.
+			const tocChunks = paginateHtml(buildTocHtml(pages), {
+				width: box.width,
+				height: box.tocHeight,
+			});
+			// 2. Insert TOC pages after the cover, then paginate + expand recipes.
+			const base = insertTocPages(pages, tocChunks.length);
 			const chunks: Record<string, string[]> = {};
-			for (const page of pages) {
+			for (const page of base) {
 				if (page.kind !== "recipe") continue;
 				chunks[page.slug] = paginateHtml(htmlBySlug[page.slug] ?? "", box);
 			}
-			setExpanded({ pages: expandContinuations(pages, chunks), chunks });
+			const finalPages = expandContinuations(base, chunks);
+			// 3. Entry→page mapping exists only now; fill the TOC numbers from it.
+			const map = buildPageIndexMap(finalPages);
+			setExpanded({
+				pages: finalPages,
+				chunks,
+				tocChunks: tocChunks.map((chunk) => fillTocNumbers(chunk, map.bySlug)),
+				map,
+			});
 			setReady(true);
 		})();
 		return () => {
@@ -105,7 +162,7 @@ export default function Book({ pages }: { pages: BookPage[] }) {
 		return () => window.removeEventListener("book:goto", onGoto);
 	}, [expanded.pages.length]);
 
-	// Pair every page with its HTML chunk (recipe pages take chunk 0,
+	// Pair every page with its HTML chunk (TOC/recipe pages take their chunk,
 	// continuation pages take chunks 1.. in order).
 	const items = useMemo(() => {
 		const out: { page: BookPage; html?: string }[] = [];
@@ -118,12 +175,33 @@ export default function Book({ pages }: { pages: BookPage[] }) {
 				const i = cursor[page.slug] ?? 1;
 				cursor[page.slug] = i + 1;
 				out.push({ page, html: expanded.chunks[page.slug]?.[i] ?? "" });
+			} else if (page.kind === "toc") {
+				out.push({ page, html: expanded.tocChunks[page.part] ?? "" });
 			} else {
 				out.push({ page });
 			}
 		}
 		return out;
 	}, [expanded]);
+
+	// TOC rows and search results all flip via the same goToPage → book:goto
+	// contract (src/lib/book-model.ts).
+	const jumpToSlug = (slug: string) => {
+		const index = expanded.map.bySlug[slug];
+		if (index !== undefined) goToPage(index);
+	};
+
+	const handleStageClick = (e: ReactMouseEvent) => {
+		// Scope to the actual TOC controls: recipe/cont page roots carry
+		// data-slug too, and matching those would jump instead of flipping.
+		const target = (e.target as HTMLElement).closest(".toc-entry,.toc-section");
+		if (!target) return;
+		const slug = target.getAttribute("data-slug");
+		const index = slug
+			? expanded.map.bySlug[slug]
+			: expanded.map.bySection[target.getAttribute("data-section")!];
+		if (index !== undefined) goToPage(index);
+	};
 
 	if (!ready) {
 		return (
@@ -134,8 +212,9 @@ export default function Book({ pages }: { pages: BookPage[] }) {
 	}
 
 	return (
-		<div className="book-stage">
-			<HTMLFlipBook
+		<div className="book-stage" ref={stageRef} onClick={handleStageClick}>
+			<div role="group" aria-label="Cookbook flipbook">
+				<HTMLFlipBook
 				key={`${size.w}x${size.h}m${size.mobile}`}
 				ref={flipRef}
 				width={size.w}
@@ -158,8 +237,10 @@ export default function Book({ pages }: { pages: BookPage[] }) {
 			>
 				{items.map(({ page, html }, i) => (
 					<PageFrame key={`${i}-${page.kind}`} page={page} number={i + 1} html={html} />
-				))}
-			</HTMLFlipBook>
-		</div>
+						))}
+					</HTMLFlipBook>
+				</div>
+				<Search onJump={jumpToSlug} />
+			</div>
 	);
 }

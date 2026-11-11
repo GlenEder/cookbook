@@ -116,7 +116,7 @@ function splitBlock(block: HTMLElement, limitY: number): [string, string] {
 			}
 		}
 		splitNode = text;
-		splitOffset = lo; // first overflowing offset within this node
+		splitOffset = backUpToWhitespace(text.textContent ?? "", lo); // first overflowing offset within this node
 		break;
 	}
 
@@ -135,6 +135,17 @@ function splitBlock(block: HTMLElement, limitY: number): [string, string] {
 	range.setEnd(splitNode, splitOffset);
 	const head = serialize(range.cloneContents());
 	return [head, rest];
+}
+
+/**
+ * Move a split offset back to just after the last whitespace before it, so an
+ * oversized block never cuts a word in half. Returns `offset` unchanged when
+ * no whitespace precedes it within the node.
+ */
+export function backUpToWhitespace(text: string, offset: number): number {
+	let cut = offset;
+	while (cut > 1 && !/\s/.test(text[cut - 1] ?? "")) cut--;
+	return cut < offset && /\s/.test(text[cut - 1] ?? "") ? cut : offset;
 }
 
 /** True if the character at `offset` in `text` sits below `limitY`. */

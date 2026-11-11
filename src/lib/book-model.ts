@@ -43,6 +43,7 @@ export type BookPage =
 	  }
 	/** Continuation page for a recipe that did not fit on one page. */
 	| { kind: "recipe-cont"; slug: string; section: string; title: string }
+	| { kind: "toc"; part: number; count: number }
 	| { kind: "back" };
 
 /**
@@ -74,6 +75,43 @@ export function buildBasePages(recipes: RecipeInput[]): BookPage[] {
 	}
 	pages.push({ kind: "back" });
 	return pages;
+}
+
+/**
+ * Insert `tocCount` TOC pages right after the front cover (index 1). The count
+ * must come from measuring the TOC contents client-side BEFORE recipes are
+ * paginated, since it shifts every subsequent page index.
+ */
+export function insertTocPages(base: BookPage[], tocCount: number): BookPage[] {
+	const toc: BookPage[] = Array.from({ length: tocCount }, (_, part) => ({
+		kind: "toc",
+		part,
+		count: tocCount,
+	}));
+	const out = [...base];
+	out.splice(1, 0, ...toc);
+	return out;
+}
+
+/**
+ * Map slugs (recipe → its first page) and section names (→ divider page) to
+ * indexes in a fully expanded page list. Only valid AFTER insertTocPages +
+ * expandContinuations; this is how TOC/search jumps resolve to the right page.
+ */
+export function buildPageIndexMap(pages: BookPage[]): {
+	bySlug: Record<string, number>;
+	bySection: Record<string, number>;
+} {
+	const bySlug: Record<string, number> = {};
+	const bySection: Record<string, number> = {};
+	pages.forEach((page, index) => {
+		if ((page.kind === "recipe" || page.kind === "recipe-cont") && !(page.slug in bySlug)) {
+			bySlug[page.slug] = index;
+		} else if (page.kind === "divider" && !(page.section in bySection)) {
+			bySection[page.section] = index;
+		}
+	});
+	return { bySlug, bySection };
 }
 
 /**

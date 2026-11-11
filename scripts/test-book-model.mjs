@@ -6,7 +6,13 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildBasePages, expandContinuations } from "../src/lib/book-model.ts";
+import {
+	buildBasePages,
+	buildPageIndexMap,
+	expandContinuations,
+	insertTocPages,
+} from "../src/lib/book-model.ts";
+import { backUpToWhitespace } from "../src/components/Book/paginate.ts";
 import { sections, siteTitle } from "../src/data/site.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -97,5 +103,67 @@ for (const slug of longOnes) {
 	assert.equal(full[idx + 1].kind, "recipe-cont", `${slug} continuation follows its recipe`);
 }
 assert.equal(full.at(-1).kind, "back");
+
+// TOC insertion (Stage 3): toc pages go right after the cover, numbered in
+// order, and shift every later index.
+const withToc = insertTocPages(base, 3);
+assert.equal(withToc[0].kind, "cover");
+assert.deepEqual(
+	withToc.slice(1, 4).map((p) => ({ kind: p.kind, part: p.part, count: p.count })),
+	[
+		{ kind: "toc", part: 0, count: 3 },
+		{ kind: "toc", part: 1, count: 3 },
+		{ kind: "toc", part: 2, count: 3 },
+	],
+);
+assert.equal(withToc[4].kind, "divider");
+assert.equal(withToc[4].section, sections[0]);
+assert.equal(withToc.at(-1).kind, "back");
+assert.equal(withToc.length, base.length + 3);
+
+// Entry→page mapping (Stage 3 contract): buildPageIndexMap resolves against the
+// FULLY expanded list (toc inserted + continuations), so TOC/search jumps land
+// on the recipe's first page.
+const chunksFull = Object.fromEntries(recipes.map((r) => [r.slug, ["x"]]));
+for (const slug of longOnes) chunksFull[slug] = ["x", "y", "z"]; // 2 continuations each
+const fullBook = expandContinuations(insertTocPages(pages, 2), chunksFull);
+const map = buildPageIndexMap(fullBook);
+
+// Butter Paneer has continuations: its mapped index must be the index of its
+// FIRST page (its own, not a cont page), and a recipe after it must be shifted
+// by the toc pages AND butter-paneer's continuations.
+const butter = "butter-paneer";
+const butterFirst = fullBook.findIndex((p) => p.kind === "recipe" && p.slug === butter);
+assert.ok(butterFirst > 0);
+assert.equal(fullBook[butterFirst].kind, "recipe");
+assert.equal(fullBook[butterFirst + 1].kind, "recipe-cont");
+assert.equal(fullBook[butterFirst + 2].kind, "recipe-cont");
+assert.equal(map.bySlug[butter], butterFirst);
+// the recipe that follows butter-paneer in its section starts after both cont pages
+const afterButter = fullBook.findIndex(
+	(p, i) => i > butterFirst && p.kind === "recipe",
+);
+assert.ok(afterButter > butterFirst + 2);
+assert.equal(map.bySlug[fullBook[afterButter].slug], afterButter);
+
+// Every recipe in the book resolves to a real recipe page (never a cont page).
+for (const recipe of recipes) {
+	const at = map.bySlug[recipe.slug];
+	assert.ok(at !== undefined && fullBook[at].kind === "recipe", `${recipe.slug} maps to its first page`);
+}
+// Section headings resolve to that section's divider page.
+for (const section of sections) {
+	const at = map.bySection[section];
+	assert.equal(fullBook[at].kind, "divider");
+	assert.equal(fullBook[at].section, section);
+}
+
+// Whitespace back-off (Stage 3 side task): oversized blocks split at word
+// boundaries, never mid-word.
+assert.equal(backUpToWhitespace("abc def ghi", 7), 4); // mid-"def" → cut after "abc "
+assert.equal(backUpToWhitespace("abc def ghi", 3), 3); // already at whitespace
+assert.equal(backUpToWhitespace("abcdefgh", 5), 5); // no whitespace → unchanged
+assert.equal(backUpToWhitespace("a b c", 5), 4); // backs up to after the space
+assert.equal(backUpToWhitespace("", 0), 0);
 
 console.log(`book-model: ${pages.length} base pages, ${full.length} with continuations — all assertions passed`);

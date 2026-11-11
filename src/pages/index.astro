@@ -2,6 +2,7 @@
 import { getCollection, render } from "astro:content";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { buildBasePages, type RecipeInput } from "../lib/book-model.ts";
+import { siteTitle } from "../data/site.ts";
 import Book from "../components/Book/Book";
 import "../styles/book.css";
 
@@ -27,6 +28,29 @@ for (const entry of entries) {
 
 // Single source of truth for the ordered page list (Stage 3 consumes it too).
 const pages = buildBasePages(recipes);
+
+// Build-time search index (Stage 3): recipe title + tag-stripped body text,
+// embedded as JSON for the client-side search island. Title lives in `t`,
+// ingredients + instructions text in `x`.
+function toText(html: string): string {
+	return html
+		.replace(/<[^>]+>/g, " ")
+		.replace(/&amp;/g, "&")
+		.replace(/&lt;/g, "<")
+		.replace(/&gt;/g, ">")
+		.replace(/&quot;/g, '"')
+		.replace(/&#0?39;/g, "'")
+		.replace(/&nbsp;/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+const searchIndex = recipes.map((recipe, i) => ({
+	slug: recipe.slug,
+	t: recipe.title,
+	x: toText(recipeHtml[i].html),
+}));
+// \u003c keeps any "</script>" sequence inside recipe text from breaking out.
+const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
 ---
 
 <!doctype html>
@@ -38,9 +62,10 @@ const pages = buildBasePages(recipes);
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="preload" as="font" type="font/woff2" href="/fonts/eb-garamond-v33-latin-regular.woff2" crossorigin="anonymous" />
-		<title>A Collection of Glen Approved Foods</title>
+		<title>{siteTitle}</title>
 	</head>
 	<body>
+		<script type="application/json" id="search-index" set:html={searchJson} />
 		<div class="recipe-html-source" hidden>
 			{recipeHtml.map((r) => <template data-recipe-html={r.slug} set:html={r.html} />)}
 		</div>

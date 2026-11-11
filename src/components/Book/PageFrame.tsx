@@ -72,6 +72,9 @@ const PageFrame = React.forwardRef<HTMLDivElement, PageFrameProps>(
 					</article>
 				);
 				break;
+			case "toc":
+				body = <div className="page-content" dangerouslySetInnerHTML={{ __html: html ?? "" }} />;
+				break;
 			case "back":
 				body = (
 					<div className="page-back">
@@ -86,7 +89,12 @@ const PageFrame = React.forwardRef<HTMLDivElement, PageFrameProps>(
 
 		const folio = page.kind !== "cover" && page.kind !== "back";
 		return (
-			<div ref={ref} className={`page page-${page.kind}`}>
+			<div
+				ref={ref}
+				className={`page page-${page.kind}`}
+				data-page={page.kind}
+				data-slug={"slug" in page ? page.slug : undefined}
+			>
 				{body}
 				{folio && <span className="folio">{number}</span>}
 			</div>

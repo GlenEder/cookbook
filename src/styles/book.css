@@ -365,6 +365,192 @@ body {
 	font-size: 0.95rem;
 }
 
+/* ------------------------------------------------------------------ toc */
+.toc-heading {
+	font-size: 1.45rem;
+	font-weight: 700;
+	text-align: center;
+	letter-spacing: 0.04em;
+	margin: 4px 0 16px;
+}
+.toc-heading::after {
+	content: "";
+	display: block;
+	width: 54px;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, var(--gold), transparent);
+	margin: 10px auto 0;
+}
+.toc-section {
+	display: block;
+	width: 100%;
+	text-align: left;
+	font-family: inherit;
+	font-size: 0.92rem;
+	font-weight: 700;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+	color: var(--accent);
+	background: none;
+	border: 0;
+	padding: 12px 0 3px;
+	margin: 0;
+	cursor: pointer;
+}
+.toc-section:hover {
+	text-decoration: underline;
+}
+.toc-entry {
+	display: flex;
+	align-items: baseline;
+	width: 100%;
+	font-family: inherit;
+	font-size: 0.86rem;
+	line-height: 1.55;
+	color: var(--ink);
+	background: none;
+	border: 0;
+	padding: 2px 0;
+	margin: 0;
+	cursor: pointer;
+	text-align: left;
+}
+.toc-entry:hover .toc-name {
+	color: var(--accent);
+	text-decoration: underline;
+}
+/* Inner spans swallow the flipbook's mousedown check otherwise (target must be
+ * the button for page-flip's checkTarget to skip its click-to-turn) */
+.toc-name,
+.toc-dots,
+.toc-num {
+	pointer-events: none;
+}
+.toc-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.toc-dots {
+	flex: 1 1 auto;
+	min-width: 12px;
+	border-bottom: 1px dotted var(--ink-faint);
+	margin: 0 6px;
+	transform: translateY(-3px);
+}
+/* Fixed width keeps measured row heights stable before numbers are filled in */
+.toc-num {
+	flex: none;
+	min-width: 2.2em;
+	text-align: right;
+	color: var(--ink-soft);
+	font-variant-numeric: lining-nums;
+}
+
+/* --------------------------------------------------------------- search */
+.search-toggle {
+	position: fixed;
+	top: 14px;
+	right: 16px;
+	z-index: 40;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	border: 1px solid rgba(60, 40, 20, 0.35);
+	background: linear-gradient(160deg, var(--paper) 0%, var(--paper-deep) 100%);
+	color: var(--ink);
+	cursor: pointer;
+	box-shadow: 0 2px 6px rgba(60, 30, 10, 0.3);
+	display: grid;
+	place-items: center;
+}
+.search-toggle:hover {
+	color: var(--accent);
+}
+.search-panel {
+	position: fixed;
+	top: 66px;
+	right: 16px;
+	z-index: 40;
+	width: min(360px, calc(100vw - 32px));
+	max-height: min(70vh, 540px);
+	overflow: auto;
+	box-sizing: border-box;
+	background: var(--paper);
+	border: 1px solid rgba(105, 78, 49, 0.4);
+	box-shadow: 0 8px 28px rgba(40, 20, 5, 0.35);
+	padding: 14px;
+}
+.search-input {
+	width: 100%;
+	box-sizing: border-box;
+	font-family: inherit;
+	font-size: 1rem;
+	padding: 8px 10px;
+	border: 1px solid rgba(105, 78, 49, 0.5);
+	background: #fffdf6;
+	color: var(--ink);
+}
+.search-input:focus {
+	outline: 2px solid var(--gold);
+	outline-offset: 1px;
+}
+.search-hint,
+.search-empty {
+	font-size: 0.88rem;
+	font-style: italic;
+	color: var(--ink-soft);
+	margin: 12px 2px;
+	line-height: 1.5;
+}
+/* Screen-reader-only live region announcing the result count. */
+.search-status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+.search-results {
+	list-style: none;
+	margin: 10px 0 0;
+	padding: 0;
+}
+.search-result {
+	display: block;
+	width: 100%;
+	text-align: left;
+	font-family: inherit;
+	background: none;
+	border: 0;
+	border-bottom: 1px solid rgba(154, 130, 102, 0.3);
+	padding: 8px 2px;
+	cursor: pointer;
+	color: var(--ink);
+}
+.search-result:hover .search-result-title {
+	color: var(--accent);
+	text-decoration: underline;
+}
+.search-result-title {
+	display: block;
+	font-weight: 700;
+	font-size: 0.95rem;
+}
+.search-result-snippet {
+	display: block;
+	font-size: 0.82rem;
+	color: var(--ink-soft);
+	line-height: 1.45;
+	margin-top: 2px;
+}
+.search-result-snippet mark {
+	background: var(--gold);
+	color: #fff8e8;
+	padding: 0 1px;
+}
+
 /* hidden server-rendered recipe sources */
 .recipe-html-source {
 	display: none;
