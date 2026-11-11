@@ -1,0 +1,550 @@
+/* ---------------------------------------------------------------- tokens */
+:root {
+	--paper: #f6efdf;
+	--paper-deep: #efe5cf;
+	--paper-shade: #e4d6bc;
+	--ink: #3a2a1d;
+	--ink-soft: #6f5844;
+	--ink-faint: #9a8266;
+	--accent: #8c2b2b;
+	--accent-soft: #b04a3a;
+	--gold: #a9822f;
+	--serif: "EB Garamond", "Iowan Old Style", Georgia, serif;
+}
+
+/* ---------------------------------------------------------------- fonts */
+@font-face {
+	font-family: "EB Garamond";
+	src: url("/fonts/eb-garamond-v33-latin-regular.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "EB Garamond";
+	src: url("/fonts/eb-garamond-v33-latin-italic.woff2") format("woff2");
+	font-weight: 400;
+	font-style: italic;
+	font-display: swap;
+}
+@font-face {
+	font-family: "EB Garamond";
+	src: url("/fonts/eb-garamond-v33-latin-700.woff2") format("woff2");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* ---------------------------------------------------------------- stage */
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+body {
+	font-family: var(--serif);
+	color: var(--ink);
+	background:
+		radial-gradient(ellipse at 50% 0%, rgba(255, 248, 230, 0.55), transparent 60%),
+		radial-gradient(ellipse at 50% 110%, rgba(74, 52, 33, 0.28), transparent 65%),
+		linear-gradient(160deg, #dfcfae 0%, #cdb893 100%);
+	background-color: #d7c69f;
+}
+.book-stage {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px 16px;
+	box-sizing: border-box;
+}
+.book-loading {
+	font-style: italic;
+	color: var(--ink-soft);
+	font-size: 1.25rem;
+}
+
+/* ---------------------------------------------------------------- pages */
+.page {
+	background:
+		linear-gradient(90deg, rgba(105, 78, 49, 0.22), transparent 6%, transparent 94%, rgba(105, 78, 49, 0.22)),
+		linear-gradient(180deg, rgba(255, 252, 242, 0.6), transparent 12%, transparent 88%, rgba(133, 100, 62, 0.14)),
+		linear-gradient(115deg, var(--paper) 0%, #fbf5e6 45%, var(--paper-deep) 100%);
+	box-shadow:
+		inset 0 0 26px rgba(120, 88, 52, 0.12),
+		inset 0 0 2px rgba(120, 88, 52, 0.2);
+	color: var(--ink);
+	overflow: hidden;
+}
+.page-cover,
+.page-back {
+	background:
+		linear-gradient(90deg, rgba(66, 45, 26, 0.5), transparent 14%, transparent 86%, rgba(66, 45, 26, 0.5)),
+		linear-gradient(150deg, #8c3527 0%, #6f2418 60%, #581b11 100%);
+	color: #f7efdd;
+}
+
+.page {
+	padding: 32px 30px 38px;
+	box-sizing: border-box;
+	position: relative;
+	height: 100%;
+	width: 100%;
+}
+.folio {
+	position: absolute;
+	bottom: 12px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-size: 0.8rem;
+	color: var(--ink-faint);
+	font-variant-numeric: lining-nums;
+	letter-spacing: 0.08em;
+}
+.page-cover .folio,
+.page-back .folio {
+	display: none;
+}
+
+/* ---------------------------------------------------------------- cover */
+.page-cover {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	padding: 40px 34px;
+}
+.cover-kicker {
+	font-style: italic;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	font-size: 0.8rem;
+	margin: 0 0 22px;
+	color: rgba(247, 239, 221, 0.75);
+}
+.cover-title {
+	font-size: clamp(1.7rem, 4.2vh, 2.5rem);
+	line-height: 1.2;
+	font-weight: 700;
+	margin: 0 0 26px;
+	text-wrap: balance;
+}
+.cover-rule {
+	width: 72px;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--gold), transparent);
+	margin: 0 auto 26px;
+}
+.cover-intro {
+	font-size: 0.98rem;
+	line-height: 1.65;
+	max-width: 34ch;
+	margin: 0;
+	color: rgba(247, 239, 221, 0.9);
+}
+
+/* -------------------------------------------------------------- divider */
+.page-divider {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding-top: 34px;
+}
+.ribbon {
+	display: inline-block;
+	position: relative;
+	background: linear-gradient(180deg, var(--accent-soft), var(--accent));
+	color: #f9f0dd;
+	font-size: 0.78rem;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	padding: 10px 20px;
+	margin-bottom: 30px;
+	box-shadow: 0 2px 5px rgba(60, 30, 10, 0.35);
+}
+.ribbon::before,
+.ribbon::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	border: 9px solid transparent;
+	border-top-color: var(--accent);
+}
+.ribbon::before {
+	left: 0;
+	border-left-width: 0;
+}
+.ribbon::after {
+	right: 0;
+	border-right-width: 0;
+}
+.ribbon-label {
+	filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.25));
+}
+.divider-title {
+	font-size: clamp(1.5rem, 3.4vh, 2.1rem);
+	font-weight: 700;
+	line-height: 1.2;
+	margin: 0 0 16px;
+	text-wrap: balance;
+}
+.divider-rule {
+	width: 54px;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, var(--ink-faint), transparent);
+	margin: 0 0 24px;
+}
+.divider-preamble {
+	font-size: 0.92rem;
+	line-height: 1.6;
+	color: var(--ink-soft);
+	margin: 0 0 14px;
+	max-width: 40ch;
+}
+.divider-ref {
+	font-size: 0.9rem;
+	font-style: italic;
+	color: var(--ink-soft);
+	margin: 6px 0 0;
+}
+
+/* -------------------------------------------------------------- recipes */
+.page-head {
+	height: 74px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	gap: 4px;
+	border-bottom: 1px solid rgba(154, 130, 102, 0.45);
+	margin-bottom: 14px;
+	padding-bottom: 8px;
+}
+.recipe-title {
+	font-size: 1.28rem;
+	font-weight: 700;
+	margin: 0;
+	line-height: 1.25;
+	text-wrap: balance;
+}
+.recipe-title-cont .cont-word {
+	font-size: 0.9rem;
+	font-style: italic;
+	font-weight: 400;
+	color: var(--ink-soft);
+}
+.recipe-meta {
+	margin: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: baseline;
+}
+.recipe-source {
+	margin: 0;
+	font-size: 0.8rem;
+	font-style: italic;
+	color: var(--ink-faint);
+}
+.badge {
+	display: inline-block;
+	font-size: 0.68rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	padding: 2px 8px;
+	border-radius: 2px;
+	line-height: 1.5;
+}
+.badge-testing {
+	background: var(--gold);
+	color: #fff8e8;
+}
+.badge-yield {
+	background: transparent;
+	color: var(--ink-soft);
+	border: 1px solid rgba(154, 130, 102, 0.6);
+}
+
+/* recipe body typography (shared with the measurement host) */
+.page-content {
+	font-size: 0.98rem;
+	line-height: 1.55;
+	color: var(--ink);
+}
+.page-content h3,
+.page-content h4 {
+	font-size: 1rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--accent);
+	margin: 14px 0 6px;
+}
+.page-content p {
+	margin: 0 0 10px;
+}
+.page-content ul,
+.page-content ol {
+	margin: 0 0 12px;
+	padding-left: 1.25em;
+}
+.page-content li {
+	margin: 0 0 3px;
+}
+.page-content li::marker {
+	color: var(--accent-soft);
+}
+
+/* hidden measurement host used by paginate.ts */
+.page-measure {
+	position: absolute;
+	left: -10000px;
+	top: 0;
+	visibility: hidden;
+	z-index: -1;
+	pointer-events: none;
+}
+
+/* compact cover for small/single-page viewports */
+@media (max-width: 899px) {
+	.page-cover {
+		padding: 22px 20px;
+	}
+	.cover-kicker {
+		font-size: 0.72rem;
+		margin-bottom: 14px;
+	}
+	.cover-title {
+		font-size: 1.5rem;
+		margin-bottom: 14px;
+	}
+	.cover-rule {
+		margin-bottom: 14px;
+	}
+	.cover-intro {
+		font-size: 0.88rem;
+		line-height: 1.55;
+	}
+}
+
+/* ---------------------------------------------------------------- back */
+.page-back {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	text-align: center;
+	padding: 40px 34px;
+}
+.back-rule {
+	width: 64px;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(247, 239, 221, 0.7), transparent);
+}
+.back-title {
+	font-size: 1.25rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	margin: 0;
+}
+.back-sub {
+	font-style: italic;
+	color: rgba(247, 239, 221, 0.8);
+	margin: 0;
+	font-size: 0.95rem;
+}
+
+/* ------------------------------------------------------------------ toc */
+.toc-heading {
+	font-size: 1.45rem;
+	font-weight: 700;
+	text-align: center;
+	letter-spacing: 0.04em;
+	margin: 4px 0 16px;
+}
+.toc-heading::after {
+	content: "";
+	display: block;
+	width: 54px;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, var(--gold), transparent);
+	margin: 10px auto 0;
+}
+.toc-section {
+	display: block;
+	width: 100%;
+	text-align: left;
+	font-family: inherit;
+	font-size: 0.92rem;
+	font-weight: 700;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+	color: var(--accent);
+	background: none;
+	border: 0;
+	padding: 12px 0 3px;
+	margin: 0;
+	cursor: pointer;
+}
+.toc-section:hover {
+	text-decoration: underline;
+}
+.toc-entry {
+	display: flex;
+	align-items: baseline;
+	width: 100%;
+	font-family: inherit;
+	font-size: 0.86rem;
+	line-height: 1.55;
+	color: var(--ink);
+	background: none;
+	border: 0;
+	padding: 2px 0;
+	margin: 0;
+	cursor: pointer;
+	text-align: left;
+}
+.toc-entry:hover .toc-name {
+	color: var(--accent);
+	text-decoration: underline;
+}
+/* Inner spans swallow the flipbook's mousedown check otherwise (target must be
+ * the button for page-flip's checkTarget to skip its click-to-turn) */
+.toc-name,
+.toc-dots,
+.toc-num {
+	pointer-events: none;
+}
+.toc-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.toc-dots {
+	flex: 1 1 auto;
+	min-width: 12px;
+	border-bottom: 1px dotted var(--ink-faint);
+	margin: 0 6px;
+	transform: translateY(-3px);
+}
+/* Fixed width keeps measured row heights stable before numbers are filled in */
+.toc-num {
+	flex: none;
+	min-width: 2.2em;
+	text-align: right;
+	color: var(--ink-soft);
+	font-variant-numeric: lining-nums;
+}
+
+/* --------------------------------------------------------------- search */
+.search-toggle {
+	position: fixed;
+	top: 14px;
+	right: 16px;
+	z-index: 40;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	border: 1px solid rgba(60, 40, 20, 0.35);
+	background: linear-gradient(160deg, var(--paper) 0%, var(--paper-deep) 100%);
+	color: var(--ink);
+	cursor: pointer;
+	box-shadow: 0 2px 6px rgba(60, 30, 10, 0.3);
+	display: grid;
+	place-items: center;
+}
+.search-toggle:hover {
+	color: var(--accent);
+}
+.search-panel {
+	position: fixed;
+	top: 66px;
+	right: 16px;
+	z-index: 40;
+	width: min(360px, calc(100vw - 32px));
+	max-height: min(70vh, 540px);
+	overflow: auto;
+	box-sizing: border-box;
+	background: var(--paper);
+	border: 1px solid rgba(105, 78, 49, 0.4);
+	box-shadow: 0 8px 28px rgba(40, 20, 5, 0.35);
+	padding: 14px;
+}
+.search-input {
+	width: 100%;
+	box-sizing: border-box;
+	font-family: inherit;
+	font-size: 1rem;
+	padding: 8px 10px;
+	border: 1px solid rgba(105, 78, 49, 0.5);
+	background: #fffdf6;
+	color: var(--ink);
+}
+.search-input:focus {
+	outline: 2px solid var(--gold);
+	outline-offset: 1px;
+}
+.search-hint,
+.search-empty {
+	font-size: 0.88rem;
+	font-style: italic;
+	color: var(--ink-soft);
+	margin: 12px 2px;
+	line-height: 1.5;
+}
+/* Screen-reader-only live region announcing the result count. */
+.search-status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+.search-results {
+	list-style: none;
+	margin: 10px 0 0;
+	padding: 0;
+}
+.search-result {
+	display: block;
+	width: 100%;
+	text-align: left;
+	font-family: inherit;
+	background: none;
+	border: 0;
+	border-bottom: 1px solid rgba(154, 130, 102, 0.3);
+	padding: 8px 2px;
+	cursor: pointer;
+	color: var(--ink);
+}
+.search-result:hover .search-result-title {
+	color: var(--accent);
+	text-decoration: underline;
+}
+.search-result-title {
+	display: block;
+	font-weight: 700;
+	font-size: 0.95rem;
+}
+.search-result-snippet {
+	display: block;
+	font-size: 0.82rem;
+	color: var(--ink-soft);
+	line-height: 1.45;
+	margin-top: 2px;
+}
+.search-result-snippet mark {
+	background: var(--gold);
+	color: #fff8e8;
+	padding: 0 1px;
+}
+
+/* hidden server-rendered recipe sources */
+.recipe-html-source {
+	display: none;
+}
